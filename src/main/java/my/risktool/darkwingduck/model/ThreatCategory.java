@@ -7,17 +7,16 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Cascade;
-
 @Entity
-@Table(name = "threat_catalogue")
-public class ThreatCatalogue implements Serializable, Cloneable {
+@Table(name = "threat_categories")
+public class ThreatCategory implements Serializable, Cloneable {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -27,23 +26,27 @@ public class ThreatCatalogue implements Serializable, Cloneable {
 	@Column(name = "abbr")
 	private String abbr;
 	
-	@Column(name = "threat")
-	private String threat;
+	@Column(name = "category")
+	private String category;
 	
-	@OneToMany(mappedBy="threat")
+	@OneToMany(targetEntity=Threat.class, mappedBy="threatCategory", cascade=CascadeType.ALL, fetch=FetchType.LAZY)
 	private List<Threat> threats = new ArrayList<>();
 		
-	public ThreatCatalogue() {
+	public ThreatCategory() {
 	}
 	
-	public ThreatCatalogue(int id, String abbr, String threat) {
+	public ThreatCategory(int id, String abbr, String threat) {
 		this.id = id;
 		this.abbr = abbr;
-		this.threat = threat;
+		this.category = category;
 	}
 	
-	public ThreatCatalogue(String threat) {
-		this.threat = threat;
+	public ThreatCategory(String category) {
+		this.category = category;
+	}
+	
+	public ThreatCategory(String abbr, String category) {
+		this.category = category;
 	}
 	
 	public int getId() {
@@ -62,23 +65,25 @@ public class ThreatCatalogue implements Serializable, Cloneable {
 		return abbr;
 	}
 
-	public String getThreat() {
-		return threat;
+	public String getCategory() {
+		return category;
 	}
 
-	public void setThreat(String threat) {
-		this.threat = threat;
+	public void setCategory(String category) {
+		this.category = category;
 	}
 
 	@Override
-	public ThreatCatalogue clone() throws CloneNotSupportedException {
-		return (ThreatCatalogue) super.clone();
+	public ThreatCategory clone() throws CloneNotSupportedException {
+		return (ThreatCategory) super.clone();
 	}
 	
+//	@Override
+//	public String toString() {
+//		return "Category: " + this.id + ", " + this.abbr + ", " + this.category;
+//	}
 	@Override
 	public String toString() {
-		return "Threat: " + this.id + ", " + this.abbr + ", " + this.threat;
+		return this.category;
 	}
-
-	
 }

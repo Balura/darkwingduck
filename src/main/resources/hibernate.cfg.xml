@@ -12,7 +12,7 @@
    <property name="hibernate.hbm2ddl.auto">update</property>
    <property name="show_sql">true</property>
    <property name="hibernate.current_session_context_class">thread</property>
-   <mapping class="my.risktool.darkwingduck.model.ThreatCatalogue"/>
+   <mapping class="my.risktool.darkwingduck.model.ThreatCategory"/>
     <mapping class="my.risktool.darkwingduck.model.Threat"/>
 </session-factory>
 </hibernate-configuration>

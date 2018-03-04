@@ -6,36 +6,37 @@ import com.vaadin.data.Binder;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.FormLayout;
-import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
 
-import my.risktool.darkwingduck.GeneralFunctions;
-import my.risktool.darkwingduck.MyUI;
-import my.risktool.darkwingduck.dao.ThreatCatalogueDao;
-import my.risktool.darkwingduck.model.ThreatCatalogue;
-import my.risktool.darkwingduck.service.ThreatCatalogueService;
+import my.risktool.darkwingduck.ThreatCategoryUI;
+import my.risktool.darkwingduck.model.ThreatCategory;
+import my.risktool.darkwingduck.service.ThreatCategoryService;
 
-public class ThreatCatalogueForm extends FormLayout {
+public class ThreatCategoryForm extends FormLayout {
 
-	private Grid<ThreatCatalogue> threatGrid = new Grid(ThreatCatalogue.class);
 	private TextField abbrTxtF = new TextField("Abbreviation");
 	private TextField threatTxtF = new TextField("Threat");
 	private Button saveBtn = new Button("Save");
 	private Button deleteBtn = new Button("Delete");
 	private Label errorMsg = new Label();
 	
-	private ThreatCatalogueService threatService = new ThreatCatalogueService();
-	private ThreatCatalogue threat;
-	private static ThreatCatalogueDao threatDao;
-	private Binder<ThreatCatalogue> binder = new Binder<>(ThreatCatalogue.class);
-	private MyUI myUI;
+	private ThreatCategoryService threatCategoryService = new ThreatCategoryService();
+	private ThreatCategory threatCategory;
+	private Binder<ThreatCategory> binder = new Binder<>(ThreatCategory.class);
+	private ThreatCategoryUI threatCategoryUI;
 
-	public ThreatCatalogueForm(MyUI myUI) {
-		this.myUI = myUI;
+	public ThreatCategoryForm(ThreatCategoryUI threatCategoryUI) {
+		this.threatCategoryUI = threatCategoryUI;
 		errorMsg.setVisible(false);
+//		abbrTxtF.setMaxLength(5);
+//		threatTxtF.setMaxLength(45);
+		
+		//visibility only true when new threat category or selected item
+		setVisible(false);
+		deleteBtn.setVisible(false);
 		
 		setSizeUndefined();
 		HorizontalLayout buttons = new HorizontalLayout(saveBtn, deleteBtn);
@@ -45,67 +46,68 @@ public class ThreatCatalogueForm extends FormLayout {
 		saveBtn.setClickShortcut(KeyCode.ENTER);
 		
 //		binder.bindInstanceFields(this);
-		binder.forField(abbrTxtF).bind(ThreatCatalogue::getAbbr, ThreatCatalogue::setAbbr);
-		binder.forField(threatTxtF).bind(ThreatCatalogue::getThreat, ThreatCatalogue::setThreat);
+		binder.forField(abbrTxtF).bind(ThreatCategory::getAbbr, ThreatCategory::setCategory);
+		binder.forField(threatTxtF).bind(ThreatCategory::getCategory, ThreatCategory::setCategory);
 		
-		saveBtn.addClickListener(e -> saveThreat());
-		deleteBtn.addClickListener(e -> deleteThreat(threat.getId()));
+		saveBtn.addClickListener(e -> saveThreatCategory());
+		deleteBtn.addClickListener(e -> deleteThreat(threatCategory.getId()));
 	}
 	
-	public void setThreat(ThreatCatalogue threat) {
-		this.threat = threat;
-		binder.setBean(threat);
-		
-//		deleteBtn.setVisible();
+	public void setThreatCategory(ThreatCategory threatCategory) {
+		deleteBtn.setVisible(true);
+		this.threatCategory = threatCategory;
+		binder.setBean(threatCategory);
+	
 		setVisible(true);
 		threatTxtF.selectAll();
 	}
-
+	
+	//deletes threat category by id and reloads grid
 	private void deleteThreat(int id) {
-		threatService.delete(id);
-		myUI.updateList();
+		threatCategoryService.delete(id);
+		threatCategoryUI.updateGrid();
 		setVisible(false);
 	}
 	
-	/*
-	 * 
-	 * 
-	 * bedrohung muss noch gecheckt werden ob schon in datenbank
+	/*textfield länge muss noch gecheckt werden
 	 * 
 	 * 
 	 * 
-	 * */
+	 * 
+	 */
 	
-	
-	private void saveThreat() {
+	//saves or updates threat category and reloads grid
+	private void saveThreatCategory() {
 		
 		// check if textfield is not empty
 		if(threatTxtF.getValue().length() > 0) { 
 			
 			//check if threat already exists in database
-			List<ThreatCatalogue> threats = threatService.findAll(); 
+			List<ThreatCategory> threatCategories = threatCategoryService.findAll(); 
 			boolean duplicateEntry = false;
 			
-			for(ThreatCatalogue threat : threats) {
-				if(threat.getThreat().equals(threatTxtF.getValue())) {
+			for(ThreatCategory category : threatCategories) {
+				if(category.getCategory().equals(threatTxtF.getValue())) {
 					duplicateEntry = true;
 				}
 			}
 			
 			//save threat into database if not already in database
 			if (duplicateEntry) { 
-				errorMsg.setValue("Threat already exists");
+				errorMsg.setValue("Category already exists");
 				errorMsg.setVisible(true);
 			} else {
-				threatService.save(threat);
+				//save or update selected or inserted threat category
+				threatCategoryService.save(threatCategory);
+				//hide form
 				setVisible(false);
 			}
 			
 			//update grid
-			myUI.updateList();
+			threatCategoryUI.updateGrid();
 			
 		} else { //if textfield is empty
-			errorMsg.setValue("Cannot save empty threat");
+			errorMsg.setValue("Cannot save empty category");
 			errorMsg.setVisible(true);
 		}
 	

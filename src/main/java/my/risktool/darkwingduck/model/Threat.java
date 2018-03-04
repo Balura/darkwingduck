@@ -27,8 +27,8 @@ public class Threat implements Serializable, Cloneable {
 
 
 	@ManyToOne
-	@JoinColumn(name = "threat_catalogue_id", nullable=false)
-	private ThreatCatalogue threatCatalogue;
+	@JoinColumn(name = "threat_category_id", nullable=false)
+	private ThreatCategory threatCategory;
 	
 	public Threat() {
 	}
@@ -58,25 +58,25 @@ public class Threat implements Serializable, Cloneable {
 		this.threat = threat;
 	}
 	
-	public ThreatCatalogue getThreatCatalogue() {
-		return threatCatalogue;
+	public ThreatCategory getThreatCategory() {
+		return threatCategory;
 	}
 
-	public void setThreatCatalogue(ThreatCatalogue threatCatalogue) {
-		this.threatCatalogue = threatCatalogue;
+	public void setThreatCategory(ThreatCategory threatCategory) {
+		this.threatCategory = threatCategory;
 	}
 	
-	public String getThreatCatalogueAbbr() {
-		return threatCatalogue.getAbbr();
-	}
-	
-//	public String getThreatCatalogueThreat() {
-//		return threatCatalogue.getThreat();
+//	public String getThreatCategoryAbbr() {
+//		return threatCategory.getAbbr();
 //	}
 	
-	public int getThreatCatalogueThreat() {
-		return threatCatalogue.getId();
-	}
+//	public String getThreatCategory() {
+//		return threatCategory.getThreat();
+//	}
+	
+//	public int getThreatCategoryID() {
+//		return threatCategory.getId();
+//	}
 
 	@Override
 	public Threat clone() throws CloneNotSupportedException {

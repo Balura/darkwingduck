@@ -9,75 +9,75 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import my.risktool.darkwingduck.GeneralFunctions;
-import my.risktool.darkwingduck.dao.ThreatCatalogueDao;
-import my.risktool.darkwingduck.model.ThreatCatalogue;
+import my.risktool.darkwingduck.dao.ThreatCategoryDao;
+import my.risktool.darkwingduck.model.ThreatCategory;
 
-public class ThreatCatalogueService {
+public class ThreatCategoryService {
 
-	private static ThreatCatalogueDao threatCatalogueDao;
-	private final HashMap<Integer, ThreatCatalogue> threatCatalogueHashmap = new HashMap<>();
+	private static ThreatCategoryDao threatCategoryDao;
+	private final HashMap<Integer, ThreatCategory> threatCategoryHashmap = new HashMap<>();
 
-	public ThreatCatalogueService() {
-		threatCatalogueDao = new ThreatCatalogueDao();
+	public ThreatCategoryService() {
+		threatCategoryDao = new ThreatCategoryDao();
 	}
 
-	public static void persist(ThreatCatalogue entity) {
-		threatCatalogueDao.openCurrentSessionwithTransaction();
-		threatCatalogueDao.persist(entity);
-		threatCatalogueDao.closeCurrentSessionwithTransaction();
+	public static void persist(ThreatCategory entity) {
+		threatCategoryDao.openCurrentSessionwithTransaction();
+		threatCategoryDao.persist(entity);
+		threatCategoryDao.closeCurrentSessionwithTransaction();
 	}
 
-	public void update(ThreatCatalogue entity) {
-		threatCatalogueDao.openCurrentSessionwithTransaction();
-		threatCatalogueDao.update(entity);
-		threatCatalogueDao.closeCurrentSessionwithTransaction();
+	public void update(ThreatCategory entity) {
+		threatCategoryDao.openCurrentSessionwithTransaction();
+		threatCategoryDao.update(entity);
+		threatCategoryDao.closeCurrentSessionwithTransaction();
 	}
 
-	public static ThreatCatalogue findById(int id) {
-		threatCatalogueDao.openCurrentSession();
-		ThreatCatalogue threat = threatCatalogueDao.findById(id);
-		threatCatalogueDao.closeCurrentSession();
-		return threat;
+	public static ThreatCategory findById(int id) {
+		threatCategoryDao.openCurrentSession();
+		ThreatCategory threatCategory = threatCategoryDao.findById(id);
+		threatCategoryDao.closeCurrentSession();
+		return threatCategory;
 	}
 
 	public void delete(int id) {
-		threatCatalogueDao.openCurrentSessionwithTransaction();
-		ThreatCatalogue threat = threatCatalogueDao.findById(id);
-		threatCatalogueDao.delete(threat);
-		threatCatalogueDao.closeCurrentSessionwithTransaction();
+		threatCategoryDao.openCurrentSessionwithTransaction();
+		ThreatCategory threat = threatCategoryDao.findById(id);
+		threatCategoryDao.delete(threat);
+		threatCategoryDao.closeCurrentSessionwithTransaction();
 	}
 
-	public List<ThreatCatalogue> findAllForHashmap() {
-		threatCatalogueDao.openCurrentSession();
-		List<ThreatCatalogue> threats = threatCatalogueDao.findAll();
-		threatCatalogueDao.closeCurrentSession();
+	public List<ThreatCategory> findAllForHashmap() {
+		threatCategoryDao.openCurrentSession();
+		List<ThreatCategory> threats = threatCategoryDao.findAll();
+		threatCategoryDao.closeCurrentSession();
 		return threats;
 	}
 	
-//	public List<ThreatCatalogue> findAll() {
-//		threatCatalogueDao.openCurrentSession();
-//		List<ThreatCatalogue> threats = threatCatalogueDao.findAll();
-//		threatCatalogueDao.closeCurrentSession();
+//	public List<ThreatCategory> findAll() {
+//		threatCategoryDao.openCurrentSession();
+//		List<ThreatCategory> threats = threatCategoryDao.findAll();
+//		threatCategoryDao.closeCurrentSession();
 //		return threats;
 //	}
 
-	public synchronized List<ThreatCatalogue> findAll() {
+	public synchronized List<ThreatCategory> findAll() {
 		return findAll(null);
 	}
 	
-	public List<ThreatCatalogue> findAllThreats() {
-		threatCatalogueDao.openCurrentSession();
-		List<ThreatCatalogue> threats = threatCatalogueDao.findAllThreats();
-		threatCatalogueDao.closeCurrentSession();
-		return threats;
+	public List<ThreatCategory> findAllThreatCategories() {
+		threatCategoryDao.openCurrentSession();
+		List<ThreatCategory> categories = threatCategoryDao.findAll();
+		threatCategoryDao.closeCurrentSession();
+		return categories;
 	}
 
-	public synchronized List<ThreatCatalogue> findAll(String stringFilter) {
-		threatCatalogueDao.openCurrentSession();
+	public synchronized List<ThreatCategory> findAll(String stringFilter) {
+		threatCategoryDao.openCurrentSession();
 		populateHashMap();
-		ArrayList<ThreatCatalogue> arrayList = new ArrayList<>();
-//		System.out.println("threats" + threatCatalogue);
-		for (ThreatCatalogue threat : threatCatalogueHashmap.values()) {
+		ArrayList<ThreatCategory> arrayList = new ArrayList<>();
+//		System.out.println("threats" + threatCategory);
+		for (ThreatCategory threat : threatCategoryHashmap.values()) {
 			try {
 				boolean passesFilter = (stringFilter == null || stringFilter.isEmpty())
 						|| threat.toString().toLowerCase().contains(stringFilter.toLowerCase());
@@ -85,32 +85,32 @@ public class ThreatCatalogueService {
 					arrayList.add(threat.clone());
 				}
 			} catch (CloneNotSupportedException ex) {
-				Logger.getLogger(ThreatCatalogueService.class.getName()).log(Level.SEVERE, null, ex);
+				Logger.getLogger(ThreatCategoryService.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
-		Collections.sort(arrayList, new Comparator<ThreatCatalogue>() {
+		Collections.sort(arrayList, new Comparator<ThreatCategory>() {
 
 			@Override
-			public int compare(ThreatCatalogue t1, ThreatCatalogue t2) {
+			public int compare(ThreatCategory t1, ThreatCategory t2) {
 				return (int) (t1.getId() - t2.getId());
 			}
 		});
-		threatCatalogueDao.closeCurrentSession();
+		threatCategoryDao.closeCurrentSession();
 		System.out.println("Arraylist" + arrayList);
 		return arrayList;
 	}
 
 	public void deleteAll() {
-		threatCatalogueDao.openCurrentSessionwithTransaction();
-		threatCatalogueDao.deleteAll();
-		threatCatalogueDao.closeCurrentSessionwithTransaction();
+		threatCategoryDao.openCurrentSessionwithTransaction();
+		threatCategoryDao.deleteAll();
+		threatCategoryDao.closeCurrentSessionwithTransaction();
 	}
 
-	public ThreatCatalogueDao threatDao() {
-		return threatCatalogueDao;
+	public ThreatCategoryDao threatDao() {
+		return threatCategoryDao;
 	}
 
-	public void save(ThreatCatalogue entity) {
+	public void save(ThreatCategory entity) {
 		if (entity.getId() > 0) {
 			update(entity);
 		} else {
@@ -118,20 +118,20 @@ public class ThreatCatalogueService {
 		}
 	}
 
-	private HashMap<Integer, ThreatCatalogue> populateHashMap() {
+	private HashMap<Integer, ThreatCategory> populateHashMap() {
 		
-		List<ThreatCatalogue> threatList = findAllForHashmap();
-		threatCatalogueHashmap.clear();
+		List<ThreatCategory> categoryList = findAllForHashmap();
+		threatCategoryHashmap.clear();
 		
-		System.out.println("Hashmap" + threatList);
-		for (ThreatCatalogue threat : threatList) {
-			ThreatCatalogue t = new ThreatCatalogue();
-			t.setId(threat.getId());
-			t.setThreat(threat.getThreat());
-			threatCatalogueHashmap.put(threat.getId(), threat);
+		System.out.println("Hashmap" + categoryList);
+		for (ThreatCategory category : categoryList) {
+			ThreatCategory t = new ThreatCategory();
+			t.setId(category.getId());
+			t.setCategory(category.getCategory());
+			threatCategoryHashmap.put(category.getId(), category);
 		}
 
-		return threatCatalogueHashmap;
+		return threatCategoryHashmap;
 	}
 
 }

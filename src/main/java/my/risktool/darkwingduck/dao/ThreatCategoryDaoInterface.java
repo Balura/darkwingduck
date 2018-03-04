@@ -3,7 +3,7 @@ package my.risktool.darkwingduck.dao;
 import java.io.Serializable;
 import java.util.List;
 
-public interface ThreatCatalogueDaoInterface<T, Id extends Serializable> {
+public interface ThreatCategoryDaoInterface<T, Id extends Serializable> {
 
 	public void persist(T entity);
 	

@@ -9,15 +9,15 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import my.risktool.darkwingduck.model.ThreatCatalogue;
+import my.risktool.darkwingduck.model.ThreatCategory;
 
-public class ThreatCatalogueDao implements GenericDao<ThreatCatalogue, String> {
+public class ThreatCategoryDao implements GenericDao<ThreatCategory, String> {
 
 	private Session currentSession;
 	
 	private Transaction currentTransaction;
 
-	public ThreatCatalogueDao() {
+	public ThreatCategoryDao() {
 	}
 
 	public Session openCurrentSession() {
@@ -80,21 +80,21 @@ public class ThreatCatalogueDao implements GenericDao<ThreatCatalogue, String> {
 		this.currentTransaction = currentTransaction;
 	}
 
-	public void persist(ThreatCatalogue entity) {
+	public void persist(ThreatCategory entity) {
 		getCurrentSession().save(entity);
 	}
 
-	public void update(ThreatCatalogue entity) {
+	public void update(ThreatCategory entity) {
 		getCurrentSession().update(entity);
 	}
 
-	public ThreatCatalogue findById(int id) {
-		ThreatCatalogue threat = (ThreatCatalogue) getCurrentSession().get(ThreatCatalogue.class, id);
+	public ThreatCategory findById(int id) {
+		ThreatCategory threat = (ThreatCategory) getCurrentSession().get(ThreatCategory.class, id);
 		return threat; 
 	}
 	
 	public boolean findByThreat(String threat) {
-		List<ThreatCatalogue> threats = (List<ThreatCatalogue>) getCurrentSession().createQuery("FROM ThreatCatalogue t WHERE t.threat='" + threat + "'").list();
+		List<ThreatCategory> threats = (List<ThreatCategory>) getCurrentSession().createQuery("FROM ThreatCategory t WHERE t.threat='" + threat + "'").list();
 		System.out.println(threats);
 		if(threats.isEmpty()) {
 			return true;
@@ -104,24 +104,24 @@ public class ThreatCatalogueDao implements GenericDao<ThreatCatalogue, String> {
 		
 	}
 
-	public void delete(ThreatCatalogue entity) {
+	public void delete(ThreatCategory entity) {
 		getCurrentSession().delete(entity);
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<ThreatCatalogue> findAll() {
-		List<ThreatCatalogue> threats = (List<ThreatCatalogue>) getCurrentSession().createQuery("from ThreatCatalogue").list();
+	public List<ThreatCategory> findAll() {
+		List<ThreatCategory> threats = (List<ThreatCategory>) getCurrentSession().createQuery("from ThreatCategory").list();
 		return threats;
 	}
 	
-	public List<ThreatCatalogue> findAllThreats() {
-		List<ThreatCatalogue> threats = (List<ThreatCatalogue>) getCurrentSession().createQuery("SELECT id from ThreatCatalogue").list();
+	public List<ThreatCategory> findAllThreats() {
+		List<ThreatCategory> threats = (List<ThreatCategory>) getCurrentSession().createQuery("SELECT id from ThreatCategory").list();
 		return threats;
 	}
 	
 	public void deleteAll() {
-		List<ThreatCatalogue> entityList = findAll();
-		for (ThreatCatalogue entity : entityList) {
+		List<ThreatCategory> entityList = findAll();
+		for (ThreatCategory entity : entityList) {
 			delete(entity);
 		}
 	}
