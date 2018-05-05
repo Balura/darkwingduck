@@ -2,114 +2,152 @@ package my.risktool.darkwingduck.frontend;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
+
 import com.vaadin.data.Binder;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.FormLayout;
-import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
+import com.vaadin.ui.NativeSelect;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
 
-import my.risktool.darkwingduck.MyUI;
-import my.risktool.darkwingduck.ThreatCategoryUI;
 import my.risktool.darkwingduck.ThreatUI;
-import my.risktool.darkwingduck.dao.ThreatDao;
+import my.risktool.darkwingduck.model.Database;
 import my.risktool.darkwingduck.model.Threat;
 import my.risktool.darkwingduck.model.ThreatCategory;
-import my.risktool.darkwingduck.service.ThreatCategoryService;
-import my.risktool.darkwingduck.service.ThreatService;
+
+/**
+ * 
+ * @author Johnny
+ *TODO
+ *Textfield Längen prüfen
+ */
 
 public class ThreatForm extends FormLayout {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	Database db = new Database();
+	EntityManager em = db.getEm();
 
-	private ThreatService threatService = new ThreatService();
-	private ThreatCategory threatCategory = new ThreatCategory();
-	private ThreatCategoryService threatCategoryService = new ThreatCategoryService();
-	private Threat threat;
-	private static ThreatDao threatDao;
-	private Binder<Threat> binder = new Binder<>(Threat.class);
-	private Binder<ThreatCategory> binderCatgory = new Binder<>(ThreatCategory.class);
-	private ThreatUI threatUI;
-
-	private Grid<ThreatCategory> threatGrid = new Grid(Threat.class);
-	private TextField threatTxtF = new TextField("Threat");
+	private TextField threatTxtF = new TextField("Bedrohung");
+	TypedQuery<ThreatCategory> query = em.createNamedQuery("ThreatCategories.findAll", ThreatCategory.class);
+	List<ThreatCategory> threatCategories = query.getResultList();
+	private ComboBox<ThreatCategory> cbThreatCategories = new ComboBox<>("Kategorie auswählen", threatCategories);
+	private NativeSelect<String> confidentialitySelect = new NativeSelect<>("Vertraulichkeit");
+	private NativeSelect<String> integritySelect = new NativeSelect<>("Integrität");
+	private NativeSelect<String> availabilitySelect = new NativeSelect<>("Verfügbarkeit");
+	
+	
 	private Button saveBtn = new Button("Save");
 	private Button deleteBtn = new Button("Delete");
-	private Label errorMsg = new Label();
-	private List<ThreatCategory> threatsCollection = threatCategoryService.findAllThreatCategories();
 
-	private ComboBox<ThreatCategory> sample = new ComboBox<>("Bedrohung auswählen", threatsCollection);
+	private Threat threat;
+	private Binder<Threat> binder = new Binder<>(Threat.class);
+	private ThreatUI threatUI;
 
 	public ThreatForm(ThreatUI threatUI) {
 		this.threatUI = threatUI;
-		errorMsg.setVisible(false);
-//		threatTxtF.setMaxLength(100);
+		// threatTxtF.setMaxLength(100);
+		
+		/*removes emtpy value from dropdowns*/
+		confidentialitySelect.setEmptySelectionAllowed(false);
+		integritySelect.setEmptySelectionAllowed(false);
+		availabilitySelect.setEmptySelectionAllowed(false);
+		
+		/*set values for dropdowns*/
+		confidentialitySelect.setItems("Ja", "Nein");
+		integritySelect.setItems("Ja", "Nein");
+		availabilitySelect.setItems("Ja", "Nein");
 
 		// visibility only true when new threat category or selected item
 		setVisible(false);
+		deleteBtn.setVisible(false);
 
 		// Sets the combobox to show a certain property as the item caption
-		sample.setPlaceholder("Keine Bedrohung ausgewählt");
+		cbThreatCategories.setPlaceholder("Keine Bedrohung ausgewählt");
 		// Disallow null selections
-		sample.setEmptySelectionAllowed(false);
+		cbThreatCategories.setEmptySelectionAllowed(false);
 
 		setSizeUndefined();
 		HorizontalLayout buttons = new HorizontalLayout(saveBtn, deleteBtn);
-		addComponents(errorMsg, threatTxtF, sample, buttons);
+		addComponents(threatTxtF, cbThreatCategories, confidentialitySelect, integritySelect, availabilitySelect, buttons);
 
 		saveBtn.setStyleName(ValoTheme.BUTTON_PRIMARY);
 		saveBtn.setClickShortcut(KeyCode.ENTER);
 
-//		binder.bindInstanceFields(sample);
 		binder.forField(threatTxtF).bind(Threat::getThreat, Threat::setThreat);
-//		binderCatgory.forField(sample).bind(ThreatCategory::getCategory, ThreatCategory::setCategory);
-//		binder.bindInstanceFields(threatUI);
-		// binder.forField(threatCat).bind(Threat::getThreatCatalogueThreat,
-		// Threat::setThreat);
-		// binder.bind(sample, "Bedrohung");
-		// binder.forField(sample).bind(ThreatCategory::getCategory,
-		// ThreatCategory::setCategory);
-		// binder.bindInstanceFields(threatTxtF);
+		binder.forField(cbThreatCategories).bind(Threat::getThreatCategory_fk, Threat::setThreatCategory_fk);
+		binder.forField(confidentialitySelect).bind(Threat::getConfidentialityAsString, Threat::setConfidentialityAsString);
+		binder.forField(integritySelect).bind(Threat::getIntegrityAsString, Threat::setIntegrityAsString);
+		binder.forField(availabilitySelect).bind(Threat::getAvailabilityAsString, Threat::setAvailabilityAsString);
 
-		saveBtn.addClickListener(e -> saveThreat());
-		deleteBtn.addClickListener(e -> deleteThreat(threat.getId()));
+		saveBtn.addClickListener(e -> saveThreat(em));
+		deleteBtn.addClickListener(e -> deleteThreat(em, threat.getId()));
 	}
 
+	// is called when click on existing threat in grid
 	public void setThreat(Threat threat) {
 		System.out.println(threat);
+		System.out.println("binder " + binder);
 		this.threat = threat;
 		binder.setBean(threat);
 
-		// deleteBtn.setVisible();
+		deleteBtn.setVisible(true);
 		setVisible(true);
 		threatTxtF.selectAll();
 	}
 
-	private void deleteThreat(int id) {
-		threatService.delete(id);
-		threatUI.updateGrid();
-		setVisible(false);
+	private void deleteThreat(EntityManager em, int id) {
+		Threat newThreat = new Threat();
+		TypedQuery<Threat> query = em.createNamedQuery("Threat.findById", Threat.class).setParameter("id", id);
+		newThreat = query.getSingleResult();
+
+		em.getTransaction().begin();
+		em.remove(newThreat);
+		em.getTransaction().commit();
+
+		Notification.show("Category deleted");
+		threatUI.updateGrid(em);
+
+		setVisible(false);// hide form
 	}
 
 	/*
-	 * 
-	 * 
 	 * textfield länge muss noch gecheckt werden
+	 * 
 	 * 
 	 * 
 	 * 
 	 */
 
-	private void saveThreat() {
-		System.out.println(threat);
+	private void saveThreat(EntityManager em) {
+
 		Threat newThreat = new Threat();
-		// check if textfield is not empty
-		if (threatTxtF.getValue().length() > 0) {
+		newThreat.setThreat(threatTxtF.getValue());
+
+		// check if textfields are not empty
+		if (threatTxtF.getValue().length() == 0) {
+			Notification.show("Bedrohung eingeben");
+			threatTxtF.selectAll();
+		} else if (cbThreatCategories.isEmpty()) {
+			Notification.show("Kategorie auswählen");
+			threatTxtF.selectAll();
+		} else {
+
+			// clear all persistent entities
+			em.clear();
 
 			// check if threat already exists in database
-			List<Threat> threats = threatService.findAll();
+			TypedQuery<Threat> query = em.createNamedQuery("Threat.findAll", Threat.class);
+			List<Threat> threats = query.getResultList();
 			boolean duplicateEntry = false;
 
 			for (Threat threat : threats) {
@@ -120,36 +158,32 @@ public class ThreatForm extends FormLayout {
 
 			// save threat into database if not already in database
 			if (duplicateEntry) {
-				errorMsg.setValue("Threat already exists");
-				errorMsg.setVisible(true);
+				Notification.show("Bedrohung existiert bereits");
 			} else {
-				// threatCategoryService.
-				// threat.setThreatCategory(threatCategoryService.);
-				// ThreatCategory threatCategory = ThreatCategoryService.findById(1);
-				System.out.println("samplevalue " + sample.getValue());
-				System.out.println("threatcategory " + ThreatCategoryService.findById(1));
-				// threatCategory = sample.getValue();
-				// System.out.println("threatcategory " + threatCategory);
-				System.out.println("threatfinal :" + threat);
 
-				// int categoryID = sample.getValue();
+				// save or update selected or inserted threat category
+				try {
+					EntityTransaction tx = em.getTransaction();
+					tx.begin();
 
-				// newThreat.setThreatCategory(ThreatCategoryService.findById(categoryID));
-				newThreat.setThreatCategory(sample.getValue());
-				newThreat.setThreat(threatTxtF.getValue());
-				System.out.println("threatfinal :" + newThreat);
-				// setThreatCategory(service.findById(1)
+					if (threat.getId() != null) {
+						em.merge(threat);
+						Notification.show("Bedrohung aktualisiert");
 
-				threatService.save(newThreat);
-				setVisible(false);
+					} else { // if not existing
+						em.persist(threat);
+						Notification.show("Bedrohung gespeichert");
+					}
+
+					tx.commit();
+
+				} catch (Exception e) {
+					System.err.println("Exception: " + e.getMessage());
+				}
+				// hide form
+				setVisible(false);// hide form
+				threatUI.updateGrid(em);
 			}
-
-			// update grid
-			threatUI.updateGrid();
-
-		} else { // if textfield is empty
-			errorMsg.setValue("Cannot save empty threat");
-			errorMsg.setVisible(true);
 		}
 
 	}
